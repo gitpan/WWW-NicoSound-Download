@@ -1,0 +1,13 @@
+--- #YAML:1.0
+name:                WWW-NicoSound-Download
+version:             0.01
+abstract:            Get mp3 file from NicoSound
+license:             ~
+author:              
+    - prigel <prigel@>
+generated_by:        ExtUtils::MakeMaker version 6.42
+distribution_type:   module
+requires:     
+meta-spec:
+    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
+    version: 1.3
