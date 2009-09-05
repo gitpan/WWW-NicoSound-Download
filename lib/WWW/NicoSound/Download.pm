@@ -1,6 +1,5 @@
 package WWW::NicoSound::Download;
 
-use 5.010000;
 use strict;
 use warnings;
 use Carp;
@@ -18,7 +17,7 @@ our %EXPORT_TAGS = ( 'all' => [ qw(
 our @EXPORT_OK   = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT      = ( );
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 our $IS_RIOT = 0;
 
 my $INFO_URL  = "http://nicosound.anyap.info/sound/";
