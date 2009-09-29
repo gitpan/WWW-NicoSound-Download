@@ -1,5 +1,12 @@
 Revision history for Perl extension WWW::NicoSound::Download.
 
+0.05  Tue Sep 29 23:50:05 2009
+    - Rewrite tests.  Split testfile by function.
+    - Functions save_mp3, and get_raw can accept url that includes ID.
+0.04  Mon Sep 14 14:48:12 2009
+    - Add PREREQ_PM key in Makefile.PL.  That is HTML::DOM and Carp::Assert.
+0.03  Mon Sep  7  9:36:58 2009
+    - The get_id function returns ID if passed ID.
 0.02  Mon Aug 24 19:58:24 2009
     - Removed limitation of Perl version.
 0.01  Sat Aug 15 17:38:25 2009

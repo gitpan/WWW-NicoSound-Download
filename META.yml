@@ -1,13 +1,23 @@
 --- #YAML:1.0
-name:                WWW-NicoSound-Download
-version:             0.02
-abstract:            Get mp3 file from NicoSound
-license:             ~
-author:              
-    - prigel <prigel@>
-generated_by:        ExtUtils::MakeMaker version 6.42
-distribution_type:   module
-requires:     
+name:               WWW-NicoSound-Download
+version:            0.05
+abstract:           Get mp3 file from NicoSound
+author:
+    - Kuniyoshi Kouji <kuniyoshi.kouji@indigo.plala.or.jp>
+license:            unknown
+distribution_type:  module
+configure_requires:
+    ExtUtils::MakeMaker:  0
+build_requires:
+    ExtUtils::MakeMaker:  0
+requires:
+    Carp::Assert:  0
+    HTML::DOM:     0.026
+no_index:
+    directory:
+        - t
+        - inc
+generated_by:       ExtUtils::MakeMaker version 6.54
 meta-spec:
-    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
-    version: 1.3
+    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
+    version:  1.4

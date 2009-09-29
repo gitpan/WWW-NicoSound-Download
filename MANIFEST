@@ -2,7 +2,12 @@ Changes
 Makefile.PL
 MANIFEST
 README
-t/WWW-NicoSound-Download.t
+t/00_use.t
+t/10_get_id.t
+t/20_save_mp3.t
+t/30_get_ids.t
+t/40_get_raw.t
 t/Do_As_Infinity.html
 lib/WWW/NicoSound/Download.pm
+
 META.yml                                 Module meta-data (added by MakeMaker)
