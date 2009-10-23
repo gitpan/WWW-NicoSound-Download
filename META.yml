@@ -1,7 +1,7 @@
 --- #YAML:1.0
 name:               WWW-NicoSound-Download
-version:            0.05
-abstract:           Get mp3 file from NicoSound
+version:            1.01
+abstract:           Get mp3 file from NicoSound web service
 author:
     - Kuniyoshi Kouji <kuniyoshi.kouji@indigo.plala.or.jp>
 license:            unknown

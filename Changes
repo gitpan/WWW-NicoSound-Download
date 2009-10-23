@@ -1,5 +1,13 @@
 Revision history for Perl extension WWW::NicoSound::Download.
 
+1.01  Wed Oct 21 19:39:36 2009
+    - If fail in the get_raw and the save_mp3 then die.
+      In early version, those returns undef with warning message.
+    - Fixed a bug.
+      If ID was passed to "save_mp3", and The ID has be deleted,
+      then the function preserves odd filename.
+    - The failure when the NicoSound server is overworking was able to be detected.
+    - Add tests for private methods.
 0.05  Tue Sep 29 23:50:05 2009
     - Rewrite tests.  Split testfile by function.
     - Functions save_mp3, and get_raw can accept url that includes ID.
