@@ -1,17 +1,12 @@
-#!/usr/bin/perl
-
-use utf8;
-use open ":utf8";
-use open ":std";
 use strict;
 use warnings;
-use Test::More tests => 15;
-
 use WWW::NicoSound::Download qw( get_id );
 
+use Test::More tests => 15;
 
-my @cases = (
-    # Valid cases.
+diag( "This test targets the version[$WWW::NicoSound::Download::VERSION]." );
+
+my @valid_cases = (
     [ "http://nicosound.anyap.info/sm1234567",   "sm1234567" ],
     [ "http://nicosound.anyap.info/nm7654321/a", "nm7654321" ],
     [ "http://nicosound.anyap.info/nm123456/3",  "nm123456"  ],
@@ -25,18 +20,24 @@ my @cases = (
     [ "   nm123456  ",                           "nm123456"  ],
     [ "\tnm1234567\t",                           "nm1234567" ],
     [ " \t sm7654321\t \t",                      "sm7654321" ],
-
-
-    # Invalid cases.
-    [ "http://nicosound.anyap.info/something/but/otherthing/id9320971", undef ],
-    [ "http://nicosound.anyap.info/id9320971",                          undef ],
-    [ "http://nicosoun1d.anyap.info/sm19320971",                        undef ],
-    [ "http://nicosound.anyap.info/nm19320",                            undef ],
 );
 
+my @invalid_uris = qw(
+    http://nicosound.anyap.info/something/but/otherthing/id9320971
+    http://nicosound.anyap.info/id9320971
+    http://nicosoun1d.anyap.info/sm19320971
+    http://nicosound.anyap.info/nm19320
+);
 
-foreach my $case_ref ( @cases ) {
-    my( $url, $wish ) = @{ $case_ref };
-    is( get_id( $url ), $wish );
+TEST_VALID_CASES:
+foreach my $case_ref ( @valid_cases ) {
+    my( $uri, $wish ) = @{ $case_ref };
+
+    is( get_id( $uri ), $wish, "In valid case." );
+}
+
+TEST_INVALID_URI:
+foreach my $uri ( @invalid_uris ) {
+    is( get_id( $uri ), undef, "Returns undef if invalid." );
 }
 

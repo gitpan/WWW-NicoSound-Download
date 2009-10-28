@@ -1,5 +1,6 @@
 use ExtUtils::MakeMaker;
 
+
 WriteMakefile(
     NAME              => 'WWW::NicoSound::Download',
     VERSION_FROM      => 'lib/WWW/NicoSound/Download.pm',
@@ -9,6 +10,6 @@ WriteMakefile(
     },
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/WWW/NicoSound/Download.pm', # retrieve abstract from module
-       AUTHOR         => 'Kuniyoshi Kouji <kuniyoshi.kouji@indigo.plala.or.jp>') : ()),
+       AUTHOR         => 'Kuniyoshi Kouji <kuniyoshi@cpan.org>') : ()),
 );
 

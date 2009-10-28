@@ -1,5 +1,9 @@
 Revision history for Perl extension WWW::NicoSound::Download.
 
+1.02  Wed Oct 28 17:55:30 2009
+    - Newly add the function named [can_find_homepage].
+    - Do not test some functions
+      when the environment can not reach to the NicoSound in 180(default) seconds.
 1.01  Wed Oct 21 19:39:36 2009
     - If fail in the get_raw and the save_mp3 then die.
       In early version, those returns undef with warning message.

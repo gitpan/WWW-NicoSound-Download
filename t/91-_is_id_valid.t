@@ -1,12 +1,15 @@
-use utf8;
-use open ":utf8";
-use open ":std";
 use strict;
 use warnings;
 use WWW::NicoSound::Download ( );
+
 use Test::More tests => 15;
 
-diag( "The target version is: " . $WWW::NicoSound::Download::VERSION );
+diag( "This test targets the version[$WWW::NicoSound::Download::VERSION]." );
+
+{
+    no strict "refs";
+    *t_func = \&WWW::NicoSound::Download::_is_id_valid;
+}
 
 my @invalid_ids = (
     undef,
@@ -33,11 +36,11 @@ my @valid_ids = qw(
 
 INVALID_CASE:
 foreach my $id ( @invalid_ids ) {
-    is( WWW::NicoSound::Download::_is_id_valid( $id ), undef );
+    is( t_func( $id ), undef, "In invalid case." );
 }
 
 VALID_CASE:
 foreach my $id ( @valid_ids ) {
-    is( WWW::NicoSound::Download::_is_id_valid( $id ), 1 );
+    is( t_func( $id ), 1, "In valid case." );
 }
 

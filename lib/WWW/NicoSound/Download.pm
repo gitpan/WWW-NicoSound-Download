@@ -1,5 +1,6 @@
 package WWW::NicoSound::Download;
 
+use utf8;
 use strict;
 use warnings;
 use Carp;
@@ -12,12 +13,12 @@ require Exporter;
 
 our @ISA         = qw( Exporter );
 our %EXPORT_TAGS = ( all => [ qw(
-    get_id  get_raw  save_mp3  get_ids
+    get_id  get_raw  save_mp3  get_ids  can_find_homepage
 ) ] );
 our @EXPORT_OK   = ( @{ $EXPORT_TAGS{all} } );
 our @EXPORT      = ( );
 
-our $VERSION = "1.01";
+our $VERSION = "1.02";
 our $IS_RIOT = 0;
 
 my $INFO_URL  = "http://nicosound.anyap.info/sound/";
@@ -32,8 +33,10 @@ WWW::NicoSound::Download - Get mp3 file from NicoSound web service
 
 =head1 SYNOPSIS
 
-  use WWW::NicoSound::Download qw( get_id save_mp3 get_raw get_ids );
-  my $url = "http://nicosound.anyap.info/sm0000000";
+  use WWW::NicoSound::Download qw( get_id save_mp3 get_raw get_ids can_find_homepage );
+  die "Sorry, in this environment, can not reach to the server"
+      unless can_find_homepage( );
+  my $uri = "http://nicosound.anyap.info/sm0000000";
   my $id  = get_id( $url )
       or die "Could not get NicoSound's ID.";
   eval { save_mp3( $id ) };  # Using original name.
@@ -65,6 +68,23 @@ NicoSound's URL is "http://nicosound.anyap.info/".
 None by default.
 
 =over
+
+=item can_find_homepage( )
+
+This function tests that perl can reach to the NicoSound
+in default(180) seconds.
+
+=cut
+
+sub can_find_homepage {
+    my $ua  = LWP::UserAgent->new( );
+    my $res = $ua->get( $INFO_URL );
+
+    return 1
+        if $res->is_success;
+
+    return;
+}
 
 =item get_id( "http://nicosound.anyap.info/sm0000000" )
 
@@ -379,7 +399,7 @@ sub get_ids {
 
 =head1 AUTHOR
 
-Kuniyoshi Kouji, E<lt>Kuniyoshi.Kouji@indigo.plala.or.jpE<gt>
+Kuniyoshi Kouji, E<lt>kuniyoshi@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 

@@ -3,10 +3,11 @@ use open ":utf8";
 use open ":std";
 use strict;
 use warnings;
-use Test::More tests => 2;
-
 use WWW::NicoSound::Download qw( get_ids );
 
+use Test::More tests => 2;
+
+diag( "This test targets the version[$WWW::NicoSound::Download::VERSION]." );
 
 my @wish     = qw(
     nm3150736
