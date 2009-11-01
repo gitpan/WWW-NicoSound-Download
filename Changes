@@ -1,5 +1,9 @@
 Revision history for Perl extension WWW::NicoSound::Download.
 
+1.03  Mon Nov  1  0:31:20 2009
+    - Corresponded to the upgrade of HTML::DOM
+      In ver.0.026, getElementById worked, but in ver.0.034 does not.
+      Possibly, parsed HTML is not valid.  Change getElementById to getElementsByTagName.
 1.02  Wed Oct 28 17:55:30 2009
     - Newly add the function named [can_find_homepage].
     - Do not test some functions
@@ -24,3 +28,4 @@ Revision history for Perl extension WWW::NicoSound::Download.
 0.01  Sat Aug 15 17:38:25 2009
     - original version; created by h2xs 1.23 with options
         -XAn WWW::NicoSound::Download
+

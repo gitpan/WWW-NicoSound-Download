@@ -18,7 +18,7 @@ our %EXPORT_TAGS = ( all => [ qw(
 our @EXPORT_OK   = ( @{ $EXPORT_TAGS{all} } );
 our @EXPORT      = ( );
 
-our $VERSION = "1.02";
+our $VERSION = "1.03";
 our $IS_RIOT = 0;
 
 my $INFO_URL  = "http://nicosound.anyap.info/sound/";
@@ -205,6 +205,7 @@ sub _get_cookies_and_title {
 
     my $dom = HTML::DOM->new( );
     $dom->write( $res->decoded_content );
+    $dom->close;
 
     # Get title for filename.
     my $title = $dom->getElementsByTagName( "title" )->[0]->text;
@@ -229,16 +230,15 @@ sub _get_cookies_and_title {
     #   - GET  http://nicosound.anyap.info/sound/sm0000000
     #   - POST http://nicosound.anyap.info/sound/sm0000000
     #   - GET  http://nicosound2.anyap.info:8080/sound/sm0000000.mp3
-    my( $event_target, $event_argument );
+
     my $element_id = "ctl00_ContentPlaceHolder1_SoundInfo1_btnLocal2";
-    my $post_param = $dom->getElementById( $element_id );
+    my( $post_param ) = grep { $_->id eq $element_id }
+                        $dom->getElementsByTagName( "a" );
     die "### Could not parse the parameters for POST."
         unless defined $post_param;
 
-    if ( $post_param->href =~ m{__doPostBack[(]'([^']+)',\s*'([^']*)'}msx ) {
-        ( $event_target, $event_argument )
-            = ( $1, $2 );
-    }
+    my( $event_target, $event_argument )
+        = $post_param->href =~ m{ __doPostBack [(] ['] ([^']+) ['] [,] ['] ([^']*) }msx;
     die "### Could not parse the parameters for POST."
         unless ( defined $event_target ) and ( defined $event_argument );
 

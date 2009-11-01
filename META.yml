@@ -1,10 +1,10 @@
 --- #YAML:1.0
 name:               WWW-NicoSound-Download
-version:            1.02
+version:            1.03
 abstract:           Get mp3 file from NicoSound web service
 author:
     - Kuniyoshi Kouji <kuniyoshi@cpan.org>
-license:            unknown
+license:            perl
 distribution_type:  module
 configure_requires:
     ExtUtils::MakeMaker:  0
@@ -12,7 +12,7 @@ build_requires:
     ExtUtils::MakeMaker:  0
 requires:
     Carp::Assert:  0
-    HTML::DOM:     0.026
+    HTML::DOM:     0.034
 no_index:
     directory:
         - t

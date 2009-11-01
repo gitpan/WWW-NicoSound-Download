@@ -5,11 +5,11 @@ WriteMakefile(
     NAME              => 'WWW::NicoSound::Download',
     VERSION_FROM      => 'lib/WWW/NicoSound/Download.pm',
     PREREQ_PM         => {
-        "HTML::DOM"       => "0.026",
+        "HTML::DOM"       => "0.034",
         "Carp::Assert"    => "0",
     },
-    ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
-      (ABSTRACT_FROM  => 'lib/WWW/NicoSound/Download.pm', # retrieve abstract from module
-       AUTHOR         => 'Kuniyoshi Kouji <kuniyoshi@cpan.org>') : ()),
+    LICENSE           => 'perl',
+    ABSTRACT_FROM     => 'lib/WWW/NicoSound/Download.pm',
+    AUTHOR            => 'Kuniyoshi Kouji <kuniyoshi@cpan.org>',
 );
 
