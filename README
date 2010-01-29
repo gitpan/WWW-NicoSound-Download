@@ -1,4 +1,4 @@
-WWW-NicoSound-Download version 1.03
+WWW-NicoSound-Download version 1.05
 ===================================
 
 INSTALLATION
@@ -16,6 +16,9 @@ This module requires these other modules and libraries:
 
   - Carp::Assert
   - HTML::DOM
+  - Exception::Class
+  - Test::Exception
+  - Test::File
 
 COPYRIGHT AND LICENCE
 

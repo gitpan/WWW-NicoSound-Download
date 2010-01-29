@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               WWW-NicoSound-Download
-version:            1.03
+version:            1.05
 abstract:           Get mp3 file from NicoSound web service
 author:
     - Kuniyoshi Kouji <kuniyoshi@cpan.org>
@@ -11,13 +11,16 @@ configure_requires:
 build_requires:
     ExtUtils::MakeMaker:  0
 requires:
-    Carp::Assert:  0
-    HTML::DOM:     0.034
+    Carp::Assert:      0
+    Exception::Class:  0
+    HTML::DOM:         0.034
+    Test::Exception:   0
+    Test::File:        0
 no_index:
     directory:
         - t
         - inc
-generated_by:       ExtUtils::MakeMaker version 6.54
+generated_by:       ExtUtils::MakeMaker version 6.56
 meta-spec:
     url:      http://module-build.sourceforge.net/META-spec-v1.4.html
     version:  1.4

@@ -1,5 +1,9 @@
 Revision history for Perl extension WWW::NicoSound::Download.
 
+1.05  Fri Jan 29 11:57:00 2010
+    - Supports Exception::Class. Replaced die to throw.
+1.04  Tue Nov  3 14:36:13 2009
+    - NicoSound's has ID. "zb0000000" is valid ID too.
 1.03  Mon Nov  1  0:31:20 2009
     - Corresponded to the upgrade of HTML::DOM
       In ver.0.026, getElementById worked, but in ver.0.034 does not.

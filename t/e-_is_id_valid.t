@@ -1,10 +1,12 @@
+use utf8;
 use strict;
 use warnings;
 use WWW::NicoSound::Download ( );
 
-use Test::More tests => 15;
+use Test::More tests => 18;
+use Test::Exception;
 
-diag( "This test targets the version[$WWW::NicoSound::Download::VERSION]." );
+#diag( "This test targets the version[$WWW::NicoSound::Download::VERSION]." );
 
 {
     no strict "refs";
@@ -32,15 +34,23 @@ my @valid_ids = qw(
     sm1234567
     nm123456
     nm1234567
+    zb123456
+    zb1234567
 );
+
+throws_ok { t_func( ) } "E::IDRequired";
+
+#diag( "The number of invalid cases is: ", scalar @invalid_ids );
 
 INVALID_CASE:
 foreach my $id ( @invalid_ids ) {
-    is( t_func( $id ), undef, "In invalid case." );
+    throws_ok { t_func( $id ) } "E::InvalidID";
 }
+
+#diag( "The number of valid cases is: ", scalar @valid_ids );
 
 VALID_CASE:
 foreach my $id ( @valid_ids ) {
-    is( t_func( $id ), 1, "In valid case." );
+    lives_ok { t_func( $id ) };
 }
 
