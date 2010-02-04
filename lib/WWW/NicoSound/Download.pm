@@ -21,7 +21,7 @@ our %EXPORT_TAGS = ( all => [ qw(
 our @EXPORT_OK   = ( @{ $EXPORT_TAGS{all} } );
 our @EXPORT      = ( );
 
-our $VERSION = "1.05";
+our $VERSION = "1.06";
 our $IS_RIOT = 0;
 
 my $INFO_URL  = "http://nicosound.anyap.info/sound/";
@@ -365,8 +365,8 @@ sub _get_cookies_and_title {
         );
     }
 
-    my $cookie_jar = HTTP::Cookies->new( { } );
-#    my $cookie_jar = HTTP::Cookies->new;
+#    my $cookie_jar = HTTP::Cookies->new( { } );
+    my $cookie_jar = HTTP::Cookies->new;
 
     $res = $ua->post(
         $INFO_URL . $id,
