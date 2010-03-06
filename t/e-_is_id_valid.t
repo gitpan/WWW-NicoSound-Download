@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use WWW::NicoSound::Download ( );
 
-use Test::More tests => 18;
+use Test::More tests => 20;
 use Test::Exception;
 
 #diag( "This test targets the version[$WWW::NicoSound::Download::VERSION]." );
@@ -36,6 +36,8 @@ my @valid_ids = qw(
     nm1234567
     zb123456
     zb1234567
+    so123456
+    so1234567
 );
 
 throws_ok { t_func( ) } "E::IDRequired";

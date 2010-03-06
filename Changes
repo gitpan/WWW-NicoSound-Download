@@ -1,5 +1,7 @@
 Revision history for Perl extension WWW::NicoSound::Download.
 
+1.07  Sat Mar  6 21:20:18 2010
+    - so(\d{7}) is valid ID.
 1.06  Thu Feb  4 19:09:22 2010
     - Specified the version of Test::More. It needs 0.94.
 1.05  Fri Jan 29 11:57:00 2010

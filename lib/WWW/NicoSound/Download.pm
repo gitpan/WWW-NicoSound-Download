@@ -21,12 +21,12 @@ our %EXPORT_TAGS = ( all => [ qw(
 our @EXPORT_OK   = ( @{ $EXPORT_TAGS{all} } );
 our @EXPORT      = ( );
 
-our $VERSION = "1.06";
+our $VERSION = "1.07";
 our $IS_RIOT = 0;
 
 my $INFO_URL  = "http://nicosound.anyap.info/sound/";
 my $SOUND_URL = "http://nicosound2.anyap.info:8080/sound/";
-my $ID_LIKE   = "([ns]m|zb) \\d{6,7}";
+my $ID_LIKE   = "([ns]m|zb|so) \\d{6,7}";
 my $MIN_SIZE  = 1_000;  # MP3 file should larger than this.
 my $INDEX     = 0;
 
