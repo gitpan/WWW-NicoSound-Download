@@ -1,5 +1,7 @@
 Revision history for Perl extension WWW::NicoSound::Download.
 
+1.08  Sat Mar 13 21:31:46 2010
+    - sm12345678 is valid ID too.
 1.07  Sat Mar  6 21:20:18 2010
     - so(\d{7}) is valid ID.
 1.06  Thu Feb  4 19:09:22 2010

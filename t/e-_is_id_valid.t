@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use WWW::NicoSound::Download ( );
 
-use Test::More tests => 20;
+use Test::More tests => 23;
 use Test::Exception;
 
 #diag( "This test targets the version[$WWW::NicoSound::Download::VERSION]." );
@@ -21,11 +21,12 @@ my @invalid_ids = (
     qw(
         asdf
         sm0000
-        sm0000000000
+        sm1234567890
         nm0000
-        nm0000000000
+        nm1234567890
         pm000000
         pm0000000
+        so123456789
     ),
 );
 
@@ -38,6 +39,8 @@ my @valid_ids = qw(
     zb1234567
     so123456
     so1234567
+    sm10002804
+    sm12345678
 );
 
 throws_ok { t_func( ) } "E::IDRequired";
@@ -53,6 +56,6 @@ foreach my $id ( @invalid_ids ) {
 
 VALID_CASE:
 foreach my $id ( @valid_ids ) {
-    lives_ok { t_func( $id ) };
+    lives_ok { t_func( $id ), "The id is: $id" };
 }
 

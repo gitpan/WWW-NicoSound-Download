@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                WWW-NicoSound-Download
-version:             1.07
+version:             1.08
 abstract:            Get mp3 file from NicoSound web service
 license:             perl
 author:              
