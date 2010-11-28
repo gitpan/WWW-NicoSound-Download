@@ -3,311 +3,146 @@ package WWW::NicoSound::Download;
 use utf8;
 use strict;
 use warnings;
-#use Carp::Assert;
-no Carp::Assert;
-use bytes ( );
-use File::Spec::Functions qw( splitdir );
+use Carp qw( croak );
+use Readonly;
+use base "Class::Accessor";
 use LWP::UserAgent;
 use HTTP::Cookies;
 use HTML::DOM;
-use WWW::NicoSound::Download::Error;
+use WWW::NicoSound::Download::Sound;
 
-require Exporter;
+use constant IS_RIOT => 0;
+use constant TIMEOUT => 10;
+use constant DEBUG   => 0;
 
-our @ISA         = qw( Exporter );
-our %EXPORT_TAGS = ( all => [ qw(
-    can_find_homepage  get_id  get_ids  get_raw  save_mp3  
-) ] );
-our @EXPORT_OK   = ( @{ $EXPORT_TAGS{all} } );
-our @EXPORT      = ( );
+our $VERSION = "1.09";
 
-our $VERSION = "1.08";
-our $IS_RIOT = 0;
+Readonly my $MIN_BYTES => 1_000; # MP3 file should larger than this.
+Readonly my %DEFAULT   => (
+    ua      => LWP::UserAgent->new(
+        timeout => TIMEOUT,
+    ),
+    is_riot => IS_RIOT,
+    debug   => DEBUG,
+);
 
-my $INFO_URL  = "http://nicosound.anyap.info/sound/";
-my $SOUND_URL = "http://nicosound2.anyap.info:8080/sound/";
-my $ID_LIKE   = "([ns]m|zb|so) \\d{6,8}";
-my $MIN_SIZE  = 1_000;  # MP3 file should larger than this.
-my $INDEX     = 0;
+#
+# Class methods.
+#
 
-=head1 NAME
+__PACKAGE__->mk_accessors(
+    qw( ua  jar  is_riot  debug  sound ),
+);
 
-WWW::NicoSound::Download - Get mp3 file from NicoSound web service
+sub new {
+    my $class = shift;
+    my $self  = bless { }, $class;
 
-=head1 SYNOPSIS
-
-  use WWW::NicoSound::Download qw( can_find_homepage get_id get_ids get_raw save_mp3 );
-
-  eval { can_find_homepage( ) };
-  die $@
-      if $@;
-
-  eval {
-      my $uri = "http://nicosound.anyap.info/sm0000000";
-      my $id  = get_id( $url );
-
-      save_mp3( $id );
-
-      # Or get raw to the memory.
-      my $raw_ref = get_raw( $id );
-      # ..some modification.
-  };
-
-  # Get MP3 from a local-file of web-page.
-  my @ids = eval { get_ids( "somepage.html" ) };
-  die $@
-      if $@;
-
-  eval { save_mp3( $_ ) }
-      foreach @ids;
-
-  # To see module messages, set flag to true.
-  $WWW::NicoSound::Download::IS_RIOT = 1;
-
-=head1 DESCRIPTION
-
-In this module, you can preserve a MP3 file from NicoSound.
-
-NicoSound's URL is "http://nicosound.anyap.info/".
-
-=head2 EXPORT
-
-None by default.
-
-=head1 METHODS
-
-=over
-
-=item can_find_homepage( )
-
-This function tests that perl can reach to the NicoSound
-in default(180) seconds.
-
-=cut
-
-sub can_find_homepage {
-    my $ua  = LWP::UserAgent->new;
-    my $res = $ua->get( $INFO_URL );
-
-    if ( $res->is_success ) {
-        return 1;
+    foreach my $name ( qw( ua is_riot debug ) ) {
+        $self->_set_default( $name );
     }
-    else {
-        E::CantFindHomepage->throw(
-            message     => "Could not reach to the server in 180[s].",
-            status_line => $res->status_line,
-        );
-    }
+
+    return $self;
 }
 
-=item get_id( "http://nicosound.anyap.info/sm0000000" )
+sub url_to_id {
+    my $class = shift;
+    my $url   = shift
+        or croak "URL required.";
 
-This function parses URL, and returns NicoSound's ID.
-
-=cut
-
-sub _is_id_valid {
-    unless ( @_ ) {
-        E::IDRequired->throw(
-            message => "ID required.",
-        );
-    }
-
-    my $id = shift;
-    $id = defined $id ? $id : "";
-
-    return 1
-        if $id =~ m{\A $ID_LIKE \z}msx;
-
-    E::InvalidID->throw(
-        message => "ID is invalid.",
-        id      => $id,
-    );
+    return eval { WWW::NicoSound::Download::Sound->new( url => $url )->id };
 }
 
-sub get_id {
-    unless ( @_ ) {
-        E::URLRequired->throw(
-            message => "URL required.",
-        );
+#
+# Instance methods.
+#
+
+sub _set_default {
+    my $self     = shift;
+    my $property = shift
+        or croak "Property required.";
+
+    unless ( defined $self->$property ) {
+        $self->$property( $DEFAULT{ $property } );
     }
 
-    my $url = shift;
-    $url = $url ? $url : "";
-
-    if ( $url =~ m{ ($ID_LIKE) (?:[^\d] | \z) }msx ) {
-        my $id = $1;
-
-        assert( _is_id_valid( $id ) )
-            if DEBUG;
-
-        return $id;
-    }
-    else {
-        E::InvalidURL->throw(
-            message => "URL is invalid.",
-            url     => $url,
-        );
-    }
+    return $self;
 }
 
-=item get_ids( "webpage.html" )
+sub save {
+    my $self     = shift; 
+    my %param    = @_;
+    my $id       = $param{id};
+    my $url      = $param{url};
+    my $filename = $param{filename};
 
-This function obtains some IDs from web page.
-Web page is a HTML file that from NicoSound.
+    my $sound = do {
+        my %new;
 
-=cut
-
-sub get_ids {
-    unless ( @_ ) {
-        E::FilenameRequired->throw(
-            message => "Filename required.",
-        );
-    }
-
-    my $filename = shift;
-    $filename = $filename ? $filename : "";
-
-    unless ( $filename ) {
-        E::InvalidFilename->throw(
-            message  => "Filename is invalid.",
-            filename => $filename,
-        );
-    }
-
-    unless ( -f $filename ) {
-        E::FileDoesNotExist->throw(
-            message  => "File does not exist, or it's not file.",
-            filename => $filename,
-        );
-    }
-
-    # Parse HTML file.
-    my $dom = HTML::DOM->new;
-    $dom->parse_file( $filename );
-
-    my %link;
-
-    GET_LINK_FROM_HTML:
-    foreach my $href ( $dom->getElementsByTagName( "a" ) ) {
-        my $id = eval { get_id( $href->href ) };
-
-        if ( $id ) {
-            $link{ $id }++;
+        foreach my $key ( qw( id url filename ) ) {
+            $new{ $key } = $param{ $key }
+                if exists $param{ $key };
         }
-    }
-#printf "The number of IDs is: [%d].\n", scalar keys %link;
-#print join "\n", sort keys %link;
+        WWW::NicoSound::Download::Sound->new( %new );
+    };
 
-    warn "--- The number of parsed ID is: ", scalar( keys %link ), ".\n"
-        if $IS_RIOT;
+    $self->prepare( $sound );
 
-    return sort keys %link;
-}
+    warn sprintf "--- Starting save_mp3[%s].\n", $sound->filename
+        if $self->is_riot;
 
-=item get_raw( "nm0000000" )
-
-This function reads the MP3 data to the memory.
-It is used to raw modification.
-Use save_mp3 if only saving MP3 data.
-
-=cut
-
-sub get_raw {
-    unless ( @_ ) {
-        E::IDRequired->throw(
-            message => "ID Required.",
-        );
-    }
-
-    my $id = shift;
-
-    # Is ID valid?
-    eval { _is_id_valid( $id ) };
-
-    # Validate or die.
-    if ( my $e = Exception::Class->caught( "E::InvalidID" ) ) {
-        # Throw if fail.
-        $id = get_id( $id );
-
-        assert( _is_id_valid( $id ) )
-            if DEBUG;
-    }
-
-    warn "--- Starting get_raw( $id ).\n"
-        if $IS_RIOT;
-
-    # UserAgent can not place outer, cause I can not clear cookies.
-    my $ua = LWP::UserAgent->new;
-
-    my( $cookie_jar, $title ) = _get_cookies_and_title( $ua, $id );
-    assert( defined $cookie_jar and defined $title )
-        if DEBUG;
-
-    $ua->cookie_jar( $cookie_jar );
-
-    my $url = $SOUND_URL . $id . ".mp3";
-
-    my $res = $ua->get( $url );
+    my $res = $self->ua->get(
+        $sound->sound_url,
+        ":content_file" => $sound->filename,
+    );
 
     if ( $res->is_error ) {
-        E::DownloadError->throw(
-            message     => "Could not get MP3 data.",
-            status_line => $res->status_line,
-        );
-    }
-    assert( defined $res->content )
-        if DEBUG;
-
-### TODO: Overworking.
-    if ( bytes::length( $res->content ) < $MIN_SIZE ) {
-        if ( 1 ) { # Overworking.
-            E::Overworking->throw(
-                message => "The NicoSound is overworking, try later.",
-                id      => $id,
-            );
-        }
+        die sprintf "Could not get MP3 data.[%d]", $res->status_line;
     }
 
-    warn "--- Got raw MP3 data.\n"
-        if $IS_RIOT;
+    unless ( -f $sound->filename ) {
+        die sprintf "Could not save MP3 data.[%s]", $sound->id;
+    }
 
-    return \$res->content;
+    # I hope the NicoSound server returns failure-code of HTTP-status.
+    # Now, the server does not return failure code,
+    # but returns HTML that the failure withers.
+    if ( -T $sound->filename || -s $sound->filename < $MIN_BYTES ) {
+=for comment
+        unlink $sound->filename
+            or die sprintf "The NicoSound server is overworking.\n"
+                           . "Because of this, the downloaded file is not MP3 data.\n"
+                           . "So I tried deleting, but it has failed.\n"
+                           . "Please delete the file[%s].", $self->filename;
+=cut
+
+        die sprintf "The NicoSound server is overworking.\n"
+                    . "### Try downloading later.[%s]", $sound->id;
+    }
+
+    return $sound;
 }
 
-sub _get_cookies_and_title {
-    assert( @_ == 2 )
-        if DEBUG;
+sub prepare {
+    my $self  = shift;
+    my $sound = shift;
 
-    my $ua = shift;
-    my $id = shift;
-    assert( defined $ua )
-        if DEBUG;
-    assert( defined $id )
-        if DEBUG;
-    assert( _is_id_valid( $id ) )
-        if DEBUG;
+    croak "Sound required."
+        unless $sound;
 
     # Pre-GET for save MP3.
-    my $url = $INFO_URL . $id;
-    my $res = $ua->get( $url );
+    my $res = $self->ua->get( $sound->info_url );
 
     if ( $res->is_error ) {
-        E::DownloadError->throw(
-            message     => "Failed pre GET that needs for get MP3.",
-            status_line => $res->status_line,
-        );
+        die sprintf "Failed pre GET that needs for get MP3.[%s]", $res->status_line;
     }
 
     warn "--- Succeeded first GET.\n"
-        if $IS_RIOT;
+        if $self->is_riot;
 
     # Can not get MP3 cause NicoSound web service.
     if ( $res->content =~ m{ video_deleted [.] jpg }imsx ) {
-        E::HasBeenDeleted->throw(
-            message => "The ID has been deleted.",
-            id      => $id,
-        );
+        die sprintf "The ID has been deleted.[%s]", $sound->id;
     }
 
     # Parse HTML.
@@ -317,23 +152,31 @@ sub _get_cookies_and_title {
 
     # Get title for filename.
     my $title = $dom->getElementsByTagName( "title" )->[0]->text;
-    $title =~ s{\A \s*}{}msx;
-    $title =~ s{\s* \z}{}msx;
+    $title =~ s{\A \s* }{}msx;
+    $title =~ s{ \s* \z}{}msx;
     my $hosi = "☆";
-    my $nico = "にこ".$hosi."さうんど＃";
-    $title =~ s{[ ][-][ ]$nico .*}{}msx;
+    my $nico = "にこ" . $hosi . "さうんど＃";
+    $title =~ s{ [ ][-][ ]$nico .* }{}msx;
     $title =~ s{ [/] }{／}gmsx;
 
     # Did get title?
-    unless ( $title ) {
-        E::DownloadError->throw(
-            message     => "Could not parse title from HTML.",
-            status_line => undef,
-        );
+    if ( $title ) {
+        $sound->title( $title );
+    }
+    else {
+        die sprintf "Could not parse title from HTML.[%s]", $sound->id;
     }
 
-    warn "--- Title is [$title].\n"
-        if $IS_RIOT;
+    unless ( defined $sound->filename ) {
+        $sound->parse_filename_from_title;
+    }
+
+    if ( -e $sound->filename ) {
+        die sprintf "The file already exists.[%s]", $sound->filename;
+    }
+
+    warn sprintf "--- Title is [%s].\n", $sound->title
+        if $self->is_riot;
 
     # The most important codes for NicoSound web service.
     # Cookies require for obtaining from NicoSound web service.
@@ -342,193 +185,146 @@ sub _get_cookies_and_title {
     #   - POST http://nicosound.anyap.info/sound/sm0000000
     #   - GET  http://nicosound2.anyap.info:8080/sound/sm0000000.mp3
 
-    my $element_id = "ctl00_ContentPlaceHolder1_SoundInfo1_btnLocal2";
+    my $element_id    = "ctl00_ContentPlaceHolder1_SoundInfo1_btnLocal2";
     my( $post_param ) = grep { $_->id eq $element_id }
                         $dom->getElementsByTagName( "a" );
 
     # Does defined POST parameter?
     unless ( defined $post_param ) {
-        E::DownloadError->throw(
-            message     => "Could not parse the parameters for POST.",
-            status_line => undef,
-        );
+        die sprintf "Could not parse the parameters for POST.[%s]", $sound->id;
     }
 
     my( $event_target, $event_argument )
         = $post_param->href =~ m{ __doPostBack [(] ['] ([^']+) ['] [,] ['] ([^']*) }msx;
 
     # Does defined event target?
-    unless ( ( defined $event_target ) and ( defined $event_argument ) ) {
-        E::DownloadError->throw(
-            message     => "Could not parse the parameters for POST.",
-            status_line => undef,
-        );
+    unless ( $event_target ) {
+        die sprintf "Could not parse the parameters for POST.[%s] - [%s]",
+            $sound->id, $event_target;
     }
 
-#    my $cookie_jar = HTTP::Cookies->new( { } );
     my $cookie_jar = HTTP::Cookies->new;
 
-    $res = $ua->post(
-        $INFO_URL . $id,
+    $res = $self->ua->post(
+        $sound->info_url,
         {
             __EVENTTARGET   => $event_target,
             __EVENTARGUMENT => $event_argument,
         },
     );
-    assert( $res->status_line =~ m{302} )
-        if DEBUG;
+
+    die "Status line isnt 302."
+        if $self->debug && $res->status_line !~ m{302};
 
     warn "--- Succeeded the POST.\n"
-        if $IS_RIOT;
+        if $self->is_riot;
 
     $cookie_jar->extract_cookies( $res );
-    assert( defined $cookie_jar )
-        if DEBUG;
 
-    return ( $cookie_jar, $title );
+    if ( $cookie_jar ) {
+        $self->ua->cookie_jar( $cookie_jar );
+    }
+    else {
+        die "No jar."
+            if $self->debug;
+    }
+
+    return $self;
 }
 
-=item save_mp3( "nm0000000" )
+1;
 
-This function preserves MP3 data to a file.
-And returns filename that was preserved.
+__END__
+=encoding utf-8
 
-Second parameter is filename.
-If it is not defined, this function tries to get original name.
-If could not, preserve as "<process ID>.<number>.mp3",
-but this case is odd.
-This naming function is use to saving data from some fatal error.
-Do not try next ID.
+=head1 NAME
 
-=cut
+WWW::NicoSound::Download - Save MP3 file from nicosound
 
-sub save_mp3 {
-    unless ( @_ ) {
-        E::IDRequired->throw(
-            message => "ID Required.",
-        );
-    }
+=head1 SYNOPSIS
 
-    my ( $id, $filename ) = @_;
+  use WWW::NicoSound::Download;
 
-    # Is ID valid?
-    eval { _is_id_valid( $id ) };
+  my $url = "http://nicosound.anyap.info/sound/smXXXXXXXX";
 
-    # Validate or die.
-    if ( my $e = Exception::Class->caught( "E::InvalidID" ) ) {
-        # Throw if fail.
-        $id = get_id( $id );
+  my $downloader = WWW::NicoSound::Download->new;
 
-        assert( _is_id_valid( $id ) )
-            if DEBUG;
-    }
+  my $sound = $downloader->save( url => $url );
 
-    # Does file already exist?
-    if ( defined $filename and -e $filename ) {
-        E::FileAlreadyExists->throw(
-            message  => "The file already exists.",
-            filename => $filename,
-        );
-    }
+  print $sound->filename, "\n";
 
-    my $ua = LWP::UserAgent->new;
+  use Path::Class qw( file );
+  use HTML::SimpleLinkExtor;
 
-    my( $cookie_jar, $title ) = _get_cookies_and_title( $ua, $id );
-    assert( defined $cookie_jar )
-        if DEBUG;
-    assert( defined $title )
-        if DEBUG;
+  my $extor = HTML::SimpleLinkExtorj->new;
+  my $html  = do {
+      my $raw = file( "result_page_of_searching_from_nicosound.html" )->slurp;
+      utf8::decode( $raw );
+      $raw;
+  };
+  my @urls = do {
+      $extor->parse( $raw );
+      $extor->links;
+  };
+  my @ids = map { WWW::NicoSound::Download->url_to_id( $_ ) } @urls;
 
-    if ( not defined $filename ) {
-        $filename = _validate_filename( $title );
+=head1 DESCRIPTION
 
-        if ( -e $filename ) {
-            E::FileAlreadyExists->throw(
-                message  => "The file already exists.",
-                filename => $filename,
-            );
-        }
-    }
-    assert( defined $filename )
-        if DEBUG;
-    assert( not -e $filename )
-        if DEBUG;
+This class is for downloading MP3 files from nicosound web service.
 
-    $ua->cookie_jar( $cookie_jar );
+=head1 CLASS METHODS
 
-    my $url = $SOUND_URL . $id . ".mp3";
+=over
 
-    warn "--- Starting save_mp3[$filename].\n"
-        if $IS_RIOT;
+=item new
 
-    my $res = $ua->get(
-        $url,
-        ":content_file" => $filename,
-    );
+Returns a new instance of Downloader.
 
-    if ( $res->is_error ) {
-        E::DownloadError->throw(
-            message     => "Could not get MP3 data.",
-            status_line => $res->status_line,
-        );
-    }
-    assert( -f $filename )
-        if DEBUG;
+=item url_to_id
 
-    # I hope the NicoSound server returns failure-code of HTTP-status.
-    # Now, the server does not return failure code,
-    # but returns HTML that the failure withers.
-    if ( -T $filename or -s $filename < $MIN_SIZE ) {
-        unlink $filename
-            or E::CantSave->throw(
-                message => "The NicoSound server is overworking.\n"
-                         . "Because of this, the downloaded file is not MP3 data.\n"
-                         . "So I tried deleting, but it has failed.\n"
-                         . "Please delete the file[$filename].",
-               );
+Parses and returns nicosound ID from url.
 
-        E::Overworking->throw(
-            message => "The NicoSound server is overworking.\n"
-                     . "### Try downloading later.",
-            id      => $id,
-        );
-    }
+=back
 
-    return $filename;
-}
+=head1 INSTANCE METHODS
 
-sub _validate_filename {
-    assert( @_ )
-        if DEBUG;
+=over
 
-    my $filename = join "_", splitdir( shift );
+=item save
 
-    if ( $filename !~ m{ [.] mp3 \z}imsx ) {
-        $filename .= ".mp3";
-    }
+Downloads a MP3 from nicosound, and returns instance of WWW::NicoSound::Download::Sound.
 
-    return $filename;
-}
+=back
+
+=head1 PROPERTIES
+
+=over
+
+=item ua
+
+Specifies a LWP::UserAgent's instance.
+
+=item is_riot
+
+is specified, report message what i'm doing.
+
+=item debug
+
+Tells me work strictry.
 
 =back
 
 =head1 SEE ALSO
 
-WWW::NicoSound::Download::Error
-
-=head1 AUTHOR
-
-Kuniyoshi Kouji, E<lt>kuniyoshi@cpan.orgE<gt>
+The homepage URL of NicoSound is "http://nicosound.anyap.info/"
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009 by Kuniyoshi Kouji
+Copyright (C) 2010 by Kuniyoshi Kouji
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.10.0 or,
 at your option, any later version of Perl 5 you may have available.
 
 =cut
-
-1;
 

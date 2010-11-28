@@ -1,5 +1,9 @@
 Revision history for Perl extension WWW::NicoSound::Download.
 
+1.09  Sun Dec 21 16:28:24 2010
+    - Change API URL.
+    - Change codes to simple.
+    - Remove Error object -- i can't maintenace it.
 1.08  Sat Mar 13 21:31:46 2010
     - sm12345678 is valid ID too.
 1.07  Sat Mar  6 21:20:18 2010

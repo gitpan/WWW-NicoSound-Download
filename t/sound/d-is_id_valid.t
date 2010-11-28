@@ -1,12 +1,9 @@
 use utf8;
 use strict;
 use warnings;
-use WWW::NicoSound::Download qw( get_id );
-
-use Test::More tests => 27;
+use WWW::NicoSound::Download::Sound;
+use Test::More;
 use Test::Exception;
-
-#diag( "This test targets the version[$WWW::NicoSound::Download::VERSION]." );
 
 my @valid_cases = (
     [ "http://nicosound.anyap.info/sm1234567",        "sm1234567"  ],
@@ -44,7 +41,9 @@ my @invalid_uris = (
     ),
 );
 
-throws_ok { get_id( ) } "E::URLRequired";
+my $tests = 2 * @valid_cases;
+$tests += @invalid_uris;
+plan tests => $tests;
 
 #diag( "The number of valid cases is: ", scalar @valid_cases );
 
@@ -52,13 +51,15 @@ TEST_VALID_CASES:
 foreach my $case_ref ( @valid_cases ) {
     my( $uri, $wish ) = @{ $case_ref };
 
-    lives_and( sub { is get_id( $uri ), $wish }, "In valid case." );
+    my $sound = eval { WWW::NicoSound::Download::Sound->new( url => $uri ) };
+    isa_ok( $sound, "WWW::NicoSound::Download::Sound", "$uri - $wish" );
+    is( eval { $sound->id }, $wish, "$uri - $wish" );
 }
 
 #diag( "The number of invalid cases is: ", scalar @invalid_uris );
 
 TEST_INVALID_URI:
 foreach my $uri ( @invalid_uris ) {
-    throws_ok { get_id( $uri ) } "E::InvalidURL";
+    dies_ok( sub { WWW::NicoSound::Download::Sound->new( url => $uri ) } );
 }
 
