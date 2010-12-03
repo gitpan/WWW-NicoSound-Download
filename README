@@ -1,4 +1,4 @@
-WWW-NicoSound-Download version 1.09
+WWW-NicoSound-Download version 1.10
 ===================================
 
 INSTALLATION
@@ -14,6 +14,7 @@ DEPENDENCIES
 
 This module requires these other modules and libraries:
 
+  - Readonly
   - HTML::DOM
   - Test::Exception
 

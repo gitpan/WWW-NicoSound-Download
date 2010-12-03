@@ -15,7 +15,7 @@ use constant IS_RIOT => 0;
 use constant TIMEOUT => 10;
 use constant DEBUG   => 0;
 
-our $VERSION = "1.09";
+our $VERSION = "1.10";
 
 Readonly my $MIN_BYTES => 1_000; # MP3 file should larger than this.
 Readonly my %DEFAULT   => (
