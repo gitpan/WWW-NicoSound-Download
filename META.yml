@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               WWW-NicoSound-Download
-version:            1.10
+version:            1.11
 abstract:           Save MP3 file from nicosound
 author:
     - Kuniyoshi Kouji <kuniyoshi@cpan.org>
@@ -11,6 +11,7 @@ configure_requires:
 build_requires:
     ExtUtils::MakeMaker:  0
 requires:
+    Class::Accessor:  0
     HTML::DOM:        0.034
     Readonly:         0
     Test::Exception:  0
