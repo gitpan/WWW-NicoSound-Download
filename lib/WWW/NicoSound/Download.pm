@@ -15,7 +15,7 @@ use constant IS_RIOT => 0;
 use constant TIMEOUT => 10;
 use constant DEBUG   => 0;
 
-our $VERSION = "1.11";
+our $VERSION = "1.12";
 
 Readonly my $MIN_BYTES => 1_000; # MP3 file should larger than this.
 Readonly my %DEFAULT   => (
@@ -239,9 +239,12 @@ __END__
 
 =head1 NAME
 
-WWW::NicoSound::Download - Save MP3 file from nicosound
+WWW::NicoSound::Download - STOPPED
 
 =head1 SYNOPSIS
+
+  *STOPPED* don't use this.  Please wait next version, or please
+  get this module from me.
 
   use WWW::NicoSound::Download;
 
